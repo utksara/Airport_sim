@@ -10,5 +10,11 @@ public class Aircraft {
 	public String state;
 	public int RunwayNumber;
 	public static int freedtime=0;
+	
+	
+	public Aircraft(AircraftType  AT){
+		this.at = AT;
+		AT.noOfPlanes ++;
+	}
 
 }

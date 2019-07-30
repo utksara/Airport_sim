@@ -12,9 +12,6 @@ public class Driver {
 	public static void main(String[] args) {
 		
 		
-		
-		
-
 		int noOfTypeOne;
 		int noOfTypeTwo;
 		int noOfTypeThree;
@@ -34,74 +31,51 @@ public class Driver {
 		noOfTypeThree=obj.getNF3();
 		int totalFlights=noOfTypeOne+noOfTypeTwo+noOfTypeThree;
 		
-		
-		
-		
 		rt1=obj.getRT1();
 		bt1=obj.getBT1();
 		
-		AircraftType aircraftTypeOneObject =new AircraftType(rt1,bt1);
-		
-		for(int i=0;i<noOfTypeOne;i++)
-		{
-			Aircraft ac=new Aircraft();
-			ac.at=aircraftTypeOneObject;
-			
-			aircraftLinkedList.add(ac);
-		}
-		
-	
 		rt2=obj.getRT2();
 		bt2=obj.getBT2();
 		
-		AircraftType aircraftTypeTwoObject =new AircraftType(rt2,bt2);
-		
-		for(int i=0;i<noOfTypeTwo;i++)
-		{
-			Aircraft ac=new Aircraft();
-			ac.at=aircraftTypeTwoObject ;
-			
-			aircraftLinkedList.add(ac);
-		}
-		
-		
 		rt3=obj.getRT3();
 		bt3=obj.getBT3();
-		AircraftType aircraftTypeThreeObject =new AircraftType(rt3,bt3);
-		for(int i=0;i<noOfTypeThree;i++)
-		{
-			Aircraft ac=new Aircraft();
-			ac.at=aircraftTypeThreeObject;		
-			aircraftLinkedList.add(ac);
-		}
 		
+		
+		AircraftType Type1 =new AircraftType(rt1,bt1);
+		AircraftType Type2 =new AircraftType(rt2,bt2);
+		AircraftType Type3 =new AircraftType(rt3,bt3);
+		
+		//*****//
+		
+		Type1.createAircrafts(aircraftLinkedList,noOfTypeOne);
+		Type2.createAircrafts(aircraftLinkedList,noOfTypeTwo);
+		Type3.createAircrafts(aircraftLinkedList,noOfTypeThree);
+		
+	
 		peakTime=obj.getPT();
 		
 		
 		
 		int noOfOptimalGates=ap.getNumberOfGates(totalFlights, aircraftLinkedList, true);
 		System.out.println("Number of Optimal Gates "+ noOfOptimalGates);
+
 		
-		
+		//	  int noOfEmergencyLandings=ap.getNumberOfEmergencyLandings(totalFlights,noOfOptimalGates,aircraftLinkedList,peakTime,Type1);
+		//	  System.out.println("Number of Emergency landings : "+ noOfEmergencyLandings);
+		//	  obj.dispose();
 			
-			
-			  int noOfEmergencyLandings=ap.getNumberOfEmergencyLandings(totalFlights,noOfOptimalGates,aircraftLinkedList,peakTime);
-			  System.out.println("Number of Emergency landings : "+ noOfEmergencyLandings);
-			  obj.dispose();
-			
-			  OutputGUI infoObj=new OutputGUI(noOfOptimalGates,noOfEmergencyLandings, 1);
+		//	  OutputGUI infoObj=new OutputGUI(noOfOptimalGates,noOfEmergencyLandings, 1);
 			 
 			  
 			  Graph graphObj=new Graph(Airport.graphArray);
 			 
 			 
+		}
 	}
-	}
-	public static void Add()
+	
+	public static void Add(AircraftType Type)
 	{
-		Aircraft ac = new Aircraft();
-		ac.at.runwayTime=rt1;
-		ac.at.boardingTime=bt1;
+		Aircraft ac = new Aircraft(Type);
 		aircraftLinkedList.addFirst(ac);
 	}
 	

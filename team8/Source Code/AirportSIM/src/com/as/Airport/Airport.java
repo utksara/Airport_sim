@@ -1,117 +1,134 @@
 package com.as.Airport;
 
 import java.util.LinkedList;
+import java.util.Arrays;
 
-import com.as.Aircraft.Aircraft;
+import com.as.Aircraft.*;
 import com.as.Driver.*;
 
+
 public class Airport {
-	
-	
-	int numberOfGates; // This variable is used for number of gates.
-	
-	int numberOfEmergencyLandings; // This variable is used to denote the emergency number of landings the airport can handle.
-											
-	static int numberOfRunway = 1; // This variable is used for number of runways in the airport.
-	
-	static int taxiTime = 15; // This variable is used to denote taxi time required for all aircrafts.
-	
-	public static double graphArray[][]; // This variable is used to give total wait time for each number of gates.
-	
-	boolean timeExceedFlag = false;
-	boolean freedTimeFlag=true;
-	 int [] freedTimeArray;
+	public int NumberOfGates;
+	public int NumberOfEmergencyLandings;
+	public static int NumberOfRunway = 1;
+	public static int freed_flag=0;
+	public static int TaxiTime = 15;
+	public static double graphArray[][];
 
-	// This function will determine number of optimal number of gates.
-	public int getNumberOfGates(int numberOfFlights, LinkedList<Aircraft> aircraftLinkedList, boolean graphFlag) {
+	public int getNumberOfGates(int flights, LinkedList<Aircraft> ll) {
 		System.out.println("Running....");
-		numberOfGates = 1;
 		
+		// This function will determine number of optimal number of gates.
+		NumberOfGates = 1;
+
+		//Aircraft[] ac = new Aircraft[flights];
+		int g = 1, ng = flights - 1, time = 0, buffer = 7, scount = 0;
+		int sums = 0, sume = 0, sumb = 0;
+		boolean timeExceedFlag=false;
+		int totalWaitsum[] = new int[flights];
 		
-		freedTimeArray=new int[numberOfFlights];
-		// g denotes number of grounded flights and ng denotes number of non grounded
-		// flights.
-		int grounded = 1, nonGrounded = numberOfFlights - 1;
-		// buffer denotes maximum number of flights in s state.
-		int time = 0, flightBuffer = 7, s_count = 0;
-		// sums,sume,sumb denotes the wait time of flight at s,e and b states
-		// respectively.
-		int s_state_wait = 0, e_state_wait = 0, b_state_wait = 0;
-		int totalWaitsum[] = new int[numberOfFlights];
+		int optimal_gates = 0;
 
-		// This loop will check the total wait time for each number of gates from 1 to
-		// number of flights.
-		for (; numberOfGates <= numberOfFlights; numberOfGates++) {
-			time=0;
-			LinkedList<Gate> gateLinkedList;
-			gateLinkedList = createLinkedList(numberOfGates);
-			
-			LinkedList<Runway> runwayLinkedList;
-			runwayLinkedList = createRunwayLinkedList(numberOfRunway);
+		boolean flag = true;
+		int init_value =1;
+		
+		if(flights>10)
+		{	LinkedList<Aircraft> lltemp = new LinkedList<Aircraft>();
+		
+			for (int i = 0; i<flights/2; i++) {
+				lltemp.add(ll.get(i));
+			}
+			int X = getNumberOfGates( flights/2, lltemp);
+			if(X>10)
+			init_value =  X-10;
+			else
+				init_value =  X;
+		}
+		
+		for (NumberOfGates =init_value; NumberOfGates <= flights; NumberOfGates++) 
+		{
+			LinkedList<Gate> gateLinkedList = new LinkedList<Gate>();
+			int counter = 0;
+			while (counter < NumberOfGates) {
+				Gate G = new Gate();
+				G.GateNumber = counter + 1;
+				gateLinkedList.add(G);
 
-			// This loop will check total wait time for each case of grounded and non
-			// grounded number of flights for each number of gate.
-			
-			for (; grounded <= numberOfFlights - 1 && nonGrounded >= 1; grounded++, nonGrounded--) {
+				counter++;
+			}
+			LinkedList<Runway> runwayLinkedList = new LinkedList<Runway>();
+			int runwayCounter = 0;
+
+			for (; runwayCounter < NumberOfRunway; runwayCounter++) {
+				Runway rw = new Runway();
+				rw.runwayNumber = runwayCounter;
+				runwayLinkedList.add(rw);
+			}
+			System.out.println("for total flights of  "+ flights+" and gates of : "+ NumberOfGates);
+			// System.out.println("In number of gates loop");
+			//for (g = 1; g <= 3 ; g++)
+			for (g = flights - 1; g >= 1 ; g--)
+			{
+				ng = flights -g;
+				// System.out.println("For "+NumberOfGates+" gates size of gate linked list
+				// is"+gateLinkedList.size());
+				// System.out.println("In configuration loop");
+
 				int flightCounter = 0;
-				// This loop will assign the state c to the aircrafts in the initial case.
-				while (flightCounter < numberOfGates && flightCounter < grounded) {
-					aircraftLinkedList.get(flightCounter).state = "c";
+				while (flightCounter < NumberOfGates && flightCounter < g) {
+					ll.get(flightCounter).state = "c";
 
-					aircraftLinkedList.get(flightCounter).gateNo = flightCounter;
+					ll.get(flightCounter).gateNo = flightCounter;
 					gateLinkedList.get(flightCounter).status = false;
 					flightCounter++;
 				}
-				// This loop will assign the state b to the aircrafts in the initial case.
-				while (flightCounter < grounded) {
-					aircraftLinkedList.get(flightCounter).state = "b";
+				while (flightCounter < g) {
+					ll.get(flightCounter).state = "b";
 
 					flightCounter++;
 				}
-				// This loop will assign the state s to the aircrafts in the initial case.
-				while (flightCounter < numberOfFlights && flightCounter < grounded + flightBuffer) {
-					aircraftLinkedList.get(flightCounter).state = "s";
+				while (flightCounter < flights && flightCounter < g + buffer) {
+					ll.get(flightCounter).state = "s";
 
-					s_count++;
+					scount++;
 					flightCounter++;
 				}
-				// This loop will assign the state z to the aircrafts in the initial case.
-				while (flightCounter < numberOfFlights) {
-					aircraftLinkedList.get(flightCounter).state = "z";
+				while (flightCounter < flights) {
+					ll.get(flightCounter).state = "z";
 
 					flightCounter++;
 				}
+
+				time=0;
 				while (true) {
-					
-
-					// This loop will change the state of flight from z to s.
-					for (int flightLinkedListCounter = 0; flightLinkedListCounter < aircraftLinkedList.size(); flightLinkedListCounter++) {
-						if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("z")) {
-							if (s_count < flightBuffer) {
-								aircraftLinkedList.get(flightLinkedListCounter).state = "s";
+		
+					for (int i = 0; i < flights; i++) 
+					{
+						if (ll.get(i).state.equals("z")) {
+							if (scount < buffer) {
+								ll.get(i).state = "s";
 							}
 						}
-						// This loop will change the state of flight from s to r'.
-						if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("s")) {
-							boolean s_state_flag = false;
-							
-							// The variable j denotes the number of runways.
-							for (int runwayIterator = 0; runwayIterator < numberOfRunway; runwayIterator++) {
-								// This loop will check the priority of the fight for the runway.
-								for (int outerIterator = 0; outerIterator < aircraftLinkedList.size(); outerIterator++) {
-									for (int innerIterator = 0; innerIterator < aircraftLinkedList.size() && innerIterator != outerIterator; innerIterator++) {
-										if (aircraftLinkedList.get(outerIterator).sWaitTime >= aircraftLinkedList.get(innerIterator).sWaitTime
-												&& aircraftLinkedList.get(outerIterator).sWaitTime >= aircraftLinkedList.get(innerIterator).eWaitTime
-												&& runwayLinkedList.get(runwayIterator).status == true) {
-											{
-												aircraftLinkedList.get(flightLinkedListCounter).state = "r'";
-												aircraftLinkedList.get(flightLinkedListCounter).RunwayNumber = runwayLinkedList.get(runwayIterator).runwayNumber;
-												s_count--;
-												aircraftLinkedList.get(flightLinkedListCounter).sfwt += aircraftLinkedList.get(flightLinkedListCounter).sWaitTime;
+						if (ll.get(i).state.equals("s")) {
+							// System.out.println("State s");
+							boolean flags = false;
+							int j;
+							for (j = 0; j < NumberOfRunway; j++) {
 
-												aircraftLinkedList.get(flightLinkedListCounter).sWaitTime = 0;
-												runwayLinkedList.get(runwayIterator).status = false;
-												s_state_flag = true;
+								for (int k = 0; k < ll.size(); k++) {
+									for (int l = 0; l < ll.size() && l != k; l++) {
+										if (ll.get(k).sWaitTime >= ll.get(l).sWaitTime
+												&& ll.get(k).sWaitTime >= ll.get(l).eWaitTime
+												&& runwayLinkedList.get(j).status == true) {
+											{
+												ll.get(i).state = "r'";
+												ll.get(i).RunwayNumber = runwayLinkedList.get(j).runwayNumber;
+												scount--;
+												ll.get(i).sfwt += ll.get(i).sWaitTime;
+
+												ll.get(i).sWaitTime = 0;
+												runwayLinkedList.get(j).status = false;
+												flags = true;
 												break;
 											}
 										}
@@ -119,269 +136,269 @@ public class Airport {
 
 								}
 							}
-							if (s_state_flag == false)
-								aircraftLinkedList.get(flightLinkedListCounter).sWaitTime++;
+							if (flags == false)
+								ll.get(i).sWaitTime++;
 						}
-						// This loop will change the state of flight from r' to a.
-						
-						if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("r'")) {
-							aircraftLinkedList.get(flightLinkedListCounter).rdstatetimer++;
-							// The variable j denotes the number of runways.
-							for (int j = 0; j < numberOfRunway; j++) {
+
+						if (ll.get(i).state.equals("r'")) 
+						{
+							// System.out.println("State r'");
+
+							ll.get(i).rdstatetimer++;
+							for (int j = 0; j < NumberOfRunway; j++) {
 								if (runwayLinkedList.get(j).status == false) {
 
 									runwayLinkedList.get(j).rdt++;
 
 								}
-								if (runwayLinkedList.get(j).rdt == aircraftLinkedList.get(flightLinkedListCounter).at.runwayTime) {
+								if (runwayLinkedList.get(j).rdt == ll.get(i).at.runwayTime) {
 									runwayLinkedList.get(j).status = true;
 									runwayLinkedList.get(j).rdt = 0;
 								}
 							}
 
-							if (aircraftLinkedList.get(flightLinkedListCounter).rdstatetimer == aircraftLinkedList.get(flightLinkedListCounter).at.runwayTime) {
-								aircraftLinkedList.get(flightLinkedListCounter).state = "a";
-								runwayLinkedList.get(aircraftLinkedList.get(flightLinkedListCounter).RunwayNumber).status = true;
+							if (ll.get(i).rdstatetimer == ll.get(i).at.runwayTime) {
+								ll.get(i).state = "a";
+								runwayLinkedList.get(ll.get(i).RunwayNumber).status = true;
 
 							}
 						}
-						// This loop will change the state of flight from a to b.
-						else if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("a")) {
-							aircraftLinkedList.get(flightLinkedListCounter).astatetimer++;
-							if (aircraftLinkedList.get(flightLinkedListCounter).astatetimer == taxiTime) {
-								aircraftLinkedList.get(flightLinkedListCounter).state = "b";
+
+						else if (ll.get(i).state.equals("a")) 
+						{
+							// System.out.println("State a");
+
+							ll.get(i).astatetimer++;
+							if (ll.get(i).astatetimer == TaxiTime) {
+								ll.get(i).state = "b";
 							}
-						}
-						// This loop will change the state of flight from b to c.
-						else if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("b")) {
-							boolean b_flag = false;
-							// The j variable denotes the number of gates
+						} 
+						else if (ll.get(i).state.equals("b")) 
+						{
+							// System.out.println("State b");
+
+							boolean flagb = false;
 							int j;
-							for (j = 0; j < numberOfGates; j++) {
-								if (gateLinkedList.get(j).status == true) {
-									aircraftLinkedList.get(flightLinkedListCounter).state = "c";
-									aircraftLinkedList.get(flightLinkedListCounter).gateNo = j;
+							for (j = 0; j < NumberOfGates; j++) 
+							{
+								if (gateLinkedList.get(j).status == true) 
+								{
+									ll.get(i).state = "c";
+									ll.get(i).gateNo = j;
 									gateLinkedList.get(j).status = false;
-									b_flag = true;
+									flagb = true;
 									break;
 								}
 							}
-							if (b_flag == false)
-								aircraftLinkedList.get(flightLinkedListCounter).bWaitTime++;
+							if (flagb == false)
+								ll.get(i).bWaitTime++;
 						}
-						// This loop will change the state of flight from c to d.
-						if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("c")) {
-							aircraftLinkedList.get(flightLinkedListCounter).cstatetimer++;
-							if (aircraftLinkedList.get(flightLinkedListCounter).cstatetimer == aircraftLinkedList.get(flightLinkedListCounter).at.boardingTime) {
-								aircraftLinkedList.get(flightLinkedListCounter).state = "d";
-								gateLinkedList.get(aircraftLinkedList.get(flightLinkedListCounter).gateNo).status = true;
+
+						if (ll.get(i).state.equals("c")) {
+							// System.out.println("c case");
+							ll.get(i).cstatetimer++;
+							int j;
+							/*
+							 * for(j=0;j<NumberOfGates;j++) { if(gateLinkedList.get(j).status==false) {
+							 * 
+							 * gateLinkedList.get(j).gatetimer++;
+							 * 
+							 * } if(gateLinkedList.get(j).gatetimer==ll.get(i).at.boardingTime) {
+							 * gateLinkedList.get(j).status=true; gateLinkedList.get(j).gatetimer=0; }}
+							 */
+
+							if (ll.get(i).cstatetimer == ll.get(i).at.boardingTime) {
+								ll.get(i).state = "d";
+								gateLinkedList.get(ll.get(i).gateNo).status = true;
+
+								// System.out.println("Sate cganksdb");
 							}
+							// System.out.println("Exit c");
 						}
-						// This loop will change the state of flight from d to e.
-						if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("d")) {
-							aircraftLinkedList.get(flightLinkedListCounter).dstatetimer++;
-							if (aircraftLinkedList.get(flightLinkedListCounter).dstatetimer == taxiTime)
-								aircraftLinkedList.get(flightLinkedListCounter).state = "e";
-						}
-						// This loop will change the state of flight from e to r.
-						else if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("e")) {
-							boolean e_flag = false;
-							
-							// The j variable denotes the number of runways.
-							for (int runwayIterator = 0; runwayIterator < numberOfRunway; runwayIterator++) {
-								// This loop will check the priority of the fight for the runway.
-								for (int outerIterator = 0; outerIterator < aircraftLinkedList.size(); outerIterator++) {
-									for (int innerItaretor = 0; innerItaretor < aircraftLinkedList.size() && innerItaretor != outerIterator; innerItaretor++) {
-										if (aircraftLinkedList.get(outerIterator).eWaitTime >= aircraftLinkedList.get(innerItaretor).sWaitTime
-												&& aircraftLinkedList.get(outerIterator).eWaitTime >= aircraftLinkedList.get(innerItaretor).eWaitTime) {
 
-											if (runwayLinkedList.get(runwayIterator).status == true) {
+						if (ll.get(i).state.equals("d")) {
+							// System.out.println("State d");
 
-												aircraftLinkedList.get(flightLinkedListCounter).state = "r";
-												aircraftLinkedList.get(flightLinkedListCounter).RunwayNumber = runwayLinkedList.get(runwayIterator).runwayNumber;
-												runwayLinkedList.get(runwayIterator).status = false;
-												e_flag = true;
+							ll.get(i).dstatetimer++;
+							if (ll.get(i).dstatetimer == TaxiTime)
+								ll.get(i).state = "e";
+						} else if (ll.get(i).state.equals("e")) {
+							// System.out.println("State e");
+
+							boolean flage = false;
+							int j;
+							for (j = 0; j < NumberOfRunway; j++) {
+
+								for (int k = 0; k < ll.size(); k++) {
+									for (int l = 0; l < ll.size() && l != k; l++) {
+										if (ll.get(k).eWaitTime >= ll.get(l).sWaitTime
+												&& ll.get(k).eWaitTime >= ll.get(l).eWaitTime) {
+
+											if (runwayLinkedList.get(j).status == true) {
+
+												ll.get(i).state = "r";
+												ll.get(i).RunwayNumber = runwayLinkedList.get(j).runwayNumber;
+												runwayLinkedList.get(j).status = false;
+												flage = true;
 												break;
 											}
 										}
 									}
 								}
 							}
-							if (e_flag == false)
-								aircraftLinkedList.get(flightLinkedListCounter).eWaitTime++;
+							if (flage == false)
+								ll.get(i).eWaitTime++;
 						}
-						// This loop will change the state of flight from r to x.
-						if (aircraftLinkedList.get(flightLinkedListCounter).state.equals("r")) {
+						if (ll.get(i).state.equals("r")) {
+							// System.out.println("State r");
 
-							aircraftLinkedList.get(flightLinkedListCounter).rstatetimer++;
+							ll.get(i).rstatetimer++;
+							/*
+							 * for (int j = 0; j < NumberOfRunway; j++) { if (runwayLinkedList.get(j).status
+							 * == false) {
+							 * 
+							 * runwayLinkedList.get(j).RunwayTimer++;
+							 * 
+							 * } if (runwayLinkedList.get(j).RunwayTimer == ll.get(i).at.runwayTime) {
+							 * runwayLinkedList.get(j).status = true; runwayLinkedList.get(j).RunwayTimer =
+							 * 0; } }
+							 */
 
-							if (aircraftLinkedList.get(flightLinkedListCounter).rstatetimer == aircraftLinkedList.get(flightLinkedListCounter).at.runwayTime) {
-								aircraftLinkedList.get(flightLinkedListCounter).state = "x";
-								runwayLinkedList.get(aircraftLinkedList.get(flightLinkedListCounter).RunwayNumber).status = true;
-								aircraftLinkedList.get(flightLinkedListCounter).efwt += aircraftLinkedList.get(flightLinkedListCounter).eWaitTime;
-								aircraftLinkedList.get(flightLinkedListCounter).eWaitTime = 0;
+							if (ll.get(i).rstatetimer == ll.get(i).at.runwayTime) {
+								ll.get(i).state = "x";
+								runwayLinkedList.get(ll.get(i).RunwayNumber).status = true;
+								ll.get(i).efwt += ll.get(i).eWaitTime;
+								ll.get(i).eWaitTime = 0;
 
-								aircraftLinkedList.get(flightLinkedListCounter).cstatetimer = 0;
-								aircraftLinkedList.get(flightLinkedListCounter).astatetimer = 0;
-								aircraftLinkedList.get(flightLinkedListCounter).dstatetimer = 0;
-								aircraftLinkedList.get(flightLinkedListCounter).rstatetimer = 0;
-								aircraftLinkedList.get(flightLinkedListCounter).rdstatetimer = 0;
-
+								ll.get(i).cstatetimer = 0;
+								ll.get(i).astatetimer = 0;
+								ll.get(i).dstatetimer = 0;
+								ll.get(i).rstatetimer = 0;
+								ll.get(i).rdstatetimer = 0;
+								// System.out.println("Sstate x");
 							}
 						}
 
 					}
-					int x_state_counter = 0;
-					for (int i = 0; i < aircraftLinkedList.size(); i++) {
-						if (aircraftLinkedList.get(i).state.equals("x")) {
-							x_state_counter++;
+					int tempcounter = 0;
+					//for (int i = 0; i < ll.size(); i++)
+					for (int i = 0; i < flights; i++) {
+						if (ll.get(i).state.equals("x")) {
+							tempcounter++;
 
 						}
 					}
-					// This denotes the condition when all fights moves to state x.
-					if (x_state_counter == numberOfFlights) {
+					if (tempcounter == flights) {
 
 						break;
 
 					}
+
 					time++;
 
+				}// time loop ends here
+				
+				//if(g==1 ) {
+					Aircraft.freedtime=time;
+					//System.out.println("freetime ist : "+Aircraft.freedtime);
+					//}
+				
+
+				for (int i = 0; i < ll.size(); i++) {
+					sums = ll.get(i).sfwt + sums;
+					sumb = ll.get(i).bWaitTime + sumb;
+					sume = ll.get(i).efwt + sume;
 				}
 
-				
-				// This loop will give sums,sumb and sume for each gate.
-				for (int i = 0; i < aircraftLinkedList.size(); i++) {
-					s_state_wait = aircraftLinkedList.get(i).sfwt + s_state_wait;
-					b_state_wait = aircraftLinkedList.get(i).bWaitTime + b_state_wait;
-					e_state_wait = aircraftLinkedList.get(i).efwt + e_state_wait;
-				}
-
-				for (int i = 0; i < aircraftLinkedList.size(); i++) {
-					aircraftLinkedList.get(i).sfwt = 0;
-					aircraftLinkedList.get(i).bWaitTime = 0;
-					aircraftLinkedList.get(i).efwt = 0;
+				for (int i = 0; i < ll.size(); i++) {
+					ll.get(i).sfwt = 0;
+					ll.get(i).bWaitTime = 0;
+					ll.get(i).efwt = 0;
 
 				}
 				
+			//	System.out.println("For gate "+NumberOfGates+" In air= "+ng+" Freed time: "+Aircraft.freedtime);
 				
+			}// state loop ends here
+			
+			totalWaitsum[NumberOfGates - 1] = sums + sumb + sume;
+			//totalWaitsum[NumberOfGates - 1] = Aircraft.freedtime;
+			
+			if(NumberOfGates>2)
+			if(totalWaitsum[NumberOfGates - 1] == totalWaitsum[NumberOfGates - 2])
+			{	
+				System.out.println(" waitttime is "+totalWaitsum[NumberOfGates - 2]);
+				optimal_gates = NumberOfGates-1;
+				break;
 			}
-			Aircraft.freedtime = time;
-			
-				for(int i=0;i<numberOfFlights;i++)
-				{
-					freedTimeArray[i]=Aircraft.freedtime;
-				}
-			
-			
+			sums = 0;
+			sumb = 0;
+			sume = 0;
 
-			totalWaitsum[numberOfGates - 1] = s_state_wait + b_state_wait + e_state_wait;
-			s_state_wait = 0;
-			b_state_wait = 0;
-			e_state_wait = 0;
-			// This loop is used to free the linked list of gates.
 			for (int i = 0; i < gateLinkedList.size(); i++) {
 				gateLinkedList.remove(i);
 			}
-			// This loop is used to free the linked list of runways.
 			for (int i = 0; i < runwayLinkedList.size(); i++) {
 				runwayLinkedList.remove(i);
 			}
+			
+		}// gate loop ends here
+				
+		System.out.println("Time:" + time);
 
-			grounded = 1;
-			nonGrounded = numberOfFlights - 1;
-
-			time = 0;
-		}
-
-		for (int i = 0; i < numberOfFlights; i++) {
-		}
-
-		int minimumWaitTime = totalWaitsum[0];
 		
-		// This loop will find the number of gates for which the total wait time is
-		// minimum.
-		for (int i = 0; i < numberOfFlights; i++) {
-			if (totalWaitsum[i] < minimumWaitTime && totalWaitsum[i] != 0) {
-				numberOfGates = i + 1;
-				minimumWaitTime = totalWaitsum[i];
-			}
+		
+		{
+			int N = optimal_gates - init_value+2;	
+				graphArray=new double[2][N];
+		for(int i=init_value-1; i<N+init_value-1; i++)
+		{
+			
+			graphArray[0][i-init_value+1]=i+1;
+			graphArray[1][i-init_value+1]=totalWaitsum[i] /(flights*(flights-1));
 			
 		}
-
 		
-		// This loop is used to create array of number of gates and their respective
-		// total wait time.
-		if (graphFlag) {
-			graphArray = new double[2][numberOfFlights];
-			for (int i = 0; i < numberOfFlights; i++) {
-				graphArray[0][i] = i + 1;
-				graphArray[1][i] = totalWaitsum[i] / ((double)numberOfFlights * (numberOfFlights - 1));
-
-			}
-
 		}
-		return numberOfGates;
+		/*
+		int nel = 0;
+		OutputGUI infoObj=new OutputGUI(optimal_gates, nel, 1);
+		Graph graphObj=new Graph(Airport.graphArray);*/
 
+		System.out.println("Number of Optimal Gates "+ optimal_gates);
+
+		return optimal_gates;
 	}
 	
 	
-	// This function initializes runwayLinkedList 
-	private LinkedList<Runway> createRunwayLinkedList(int numberOfRunways) {
-
-		LinkedList<Runway> runwayLinkedList = new LinkedList<Runway>();
-
-		for (int runwayCounter = 0; runwayCounter < numberOfRunways; runwayCounter++) {
-			Runway runwayObject = new Runway();
-			runwayObject.runwayNumber = runwayCounter;
-			runwayLinkedList.add(runwayObject);
-		}
-		return runwayLinkedList;
-	}
+	//**************************************************************************************************************************//
 	
 	
-	
-// This function initializes gateLinkedList 
-	private LinkedList<Gate> createLinkedList(int numberOfGate) {
-		int gateCounter = 0;
-		LinkedList<Gate> gateLinkedList = new LinkedList<Gate>();
-		while (gateCounter < numberOfGate) {
-			Gate gateObject = new Gate();
-			gateObject.GateNumber = gateCounter + 1;
-			gateLinkedList.add(gateObject);
 
-			gateCounter++;
-		}
-
-		return gateLinkedList;
-	}
-
-	public int getNumberOfEmergencyLandings(int NumberOfFlights, int OptimalNumberOfGates, LinkedList<Aircraft> aircraftLinkedList,int PT) {
+	public int getNumberOfEmergencyLandings(int NumberOfFlights, int OptimalNumberOfGates, LinkedList<Aircraft> ll, AircraftType Type) {
 		int LastNumberOfFlights = NumberOfFlights;
 		int NewNumberOfGates;
-		
-		boolean graphFlag = false;
-		
-		int time;
-		
+		int answer;
+		boolean flag = false;
 		while (true) {
 
 			NumberOfFlights = NumberOfFlights + 1;
-			Driver.Add();
-			NewNumberOfGates = getNumberOfGates(NumberOfFlights, aircraftLinkedList, graphFlag);
-			time=freedTimeArray[OptimalNumberOfGates]/(NumberOfFlights-1);
-			System.out.println("Time is "+time);
-			
-			if (NewNumberOfGates != OptimalNumberOfGates  ||  time>PT) {
+			Driver.Add(Type);
+			NewNumberOfGates = getNumberOfGates(NumberOfFlights, ll);
+			System.out.println("freedtime= "+ Aircraft.freedtime);
+			if (/*NewNumberOfGates == OptimalNumberOfGates+1 ||*/ Aircraft.freedtime>500 ) {
 
-				
+				// flag = true;
 				System.out.println("For flights= " + NumberOfFlights);
 				break;
 			}
 		}
 
-		numberOfEmergencyLandings = NumberOfFlights - LastNumberOfFlights - 1;
+		answer = NumberOfFlights - LastNumberOfFlights - 1;
 
-		return numberOfEmergencyLandings;
+		return answer;
 	}
 
 }
+
+
