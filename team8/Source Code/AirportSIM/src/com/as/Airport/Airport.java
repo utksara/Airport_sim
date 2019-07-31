@@ -22,14 +22,11 @@ public class Airport {
 		NumberOfGates = 1;
 
 		//Aircraft[] ac = new Aircraft[flights];
-		int g = 1, ng = flights - 1, time = 0, buffer = 7, scount = 0;
+		int g = 1, time = 0, buffer = 7, scount = 0;
 		int sums = 0, sume = 0, sumb = 0;
-		boolean timeExceedFlag=false;
 		int totalWaitsum[] = new int[flights];
 		
 		int optimal_gates = 0;
-
-		boolean flag = true;
 		int init_value =1;
 		
 		if(flights>10)
@@ -69,7 +66,6 @@ public class Airport {
 			//for (g = 1; g <= 3 ; g++)
 			for (g = flights - 1; g >= 1 ; g--)
 			{
-				ng = flights -g;
 				// System.out.println("For "+NumberOfGates+" gates size of gate linked list
 				// is"+gateLinkedList.size());
 				// System.out.println("In configuration loop");
@@ -197,23 +193,11 @@ public class Airport {
 						if (ll.get(i).state.equals("c")) {
 							// System.out.println("c case");
 							ll.get(i).cstatetimer++;
-							int j;
-							/*
-							 * for(j=0;j<NumberOfGates;j++) { if(gateLinkedList.get(j).status==false) {
-							 * 
-							 * gateLinkedList.get(j).gatetimer++;
-							 * 
-							 * } if(gateLinkedList.get(j).gatetimer==ll.get(i).at.boardingTime) {
-							 * gateLinkedList.get(j).status=true; gateLinkedList.get(j).gatetimer=0; }}
-							 */
-
 							if (ll.get(i).cstatetimer == ll.get(i).at.boardingTime) {
 								ll.get(i).state = "d";
 								gateLinkedList.get(ll.get(i).gateNo).status = true;
 
-								// System.out.println("Sate cganksdb");
 							}
-							// System.out.println("Exit c");
 						}
 
 						if (ll.get(i).state.equals("d")) {
@@ -253,16 +237,6 @@ public class Airport {
 							// System.out.println("State r");
 
 							ll.get(i).rstatetimer++;
-							/*
-							 * for (int j = 0; j < NumberOfRunway; j++) { if (runwayLinkedList.get(j).status
-							 * == false) {
-							 * 
-							 * runwayLinkedList.get(j).RunwayTimer++;
-							 * 
-							 * } if (runwayLinkedList.get(j).RunwayTimer == ll.get(i).at.runwayTime) {
-							 * runwayLinkedList.get(j).status = true; runwayLinkedList.get(j).RunwayTimer =
-							 * 0; } }
-							 */
 
 							if (ll.get(i).rstatetimer == ll.get(i).at.runwayTime) {
 								ll.get(i).state = "x";
@@ -317,14 +291,11 @@ public class Airport {
 
 				}
 				
-			//	System.out.println("For gate "+NumberOfGates+" In air= "+ng+" Freed time: "+Aircraft.freedtime);
 				
 			}// state loop ends here
 			
 			totalWaitsum[NumberOfGates - 1] = sums + sumb + sume;
-			//totalWaitsum[NumberOfGates - 1] = Aircraft.freedtime;
-			
-			if(NumberOfGates>2)
+
 			if(totalWaitsum[NumberOfGates - 1] == totalWaitsum[NumberOfGates - 2])
 			{	
 				System.out.println(" waitttime is "+totalWaitsum[NumberOfGates - 2]);
@@ -360,10 +331,6 @@ public class Airport {
 		}
 		
 		}
-		/*
-		int nel = 0;
-		OutputGUI infoObj=new OutputGUI(optimal_gates, nel, 1);
-		Graph graphObj=new Graph(Airport.graphArray);*/
 
 		System.out.println("Number of Optimal Gates "+ optimal_gates);
 

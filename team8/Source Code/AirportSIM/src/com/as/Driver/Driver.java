@@ -54,9 +54,7 @@ public class Driver {
 	
 		peakTime=obj.getPT();
 		
-		
-		
-		int noOfOptimalGates=ap.getNumberOfGates(totalFlights, aircraftLinkedList, true);
+		int noOfOptimalGates=ap.getNumberOfGates(totalFlights,aircraftLinkedList);
 		System.out.println("Number of Optimal Gates "+ noOfOptimalGates);
 
 		
